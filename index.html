@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5576c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Physique">
+  <meta name="description" content="Train, Transform, Transcend — Gym Sets, Look Maxing & Meditation">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+  <title>Physique Program</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ─── RESET & TOKENS ─────────────────────────────── */
+    :root {
+      --gym:#f5576c; --look:#43e97b; --med:#a78bfa;
+      --dark:#0d0d0f; --surface:#1e1e24; --surface2:#252530;
+      --border:rgba(255,255,255,0.07); --text:#e8e8f0; --muted:#6b6b80;
+      --radius-sm:10px; --radius-md:16px; --radius-lg:20px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'DM Sans',sans-serif;
+      background:var(--dark);
+      min-height:100vh; min-height:100dvh;
+      color:var(--text);
+      overflow-x:hidden;
+      padding-bottom:calc(16px + var(--safe-bottom));
+    }
+
+    /* ─── INSTALL BANNER ─────────────────────────────── */
+    #install-banner {
+      display:none; position:fixed; bottom:0; left:0; right:0; z-index:2000;
+      background:var(--surface2); border-top:1px solid var(--border);
+      padding:14px 20px calc(14px + var(--safe-bottom));
+      flex-direction:row; align-items:center; gap:12px;
+      box-shadow:0 -8px 30px rgba(0,0,0,0.5);
+    }
+    #install-banner.show { display:flex; animation:slideUp2 0.3s ease; }
+    @keyframes slideUp2 { from{transform:translateY(100%)}to{transform:translateY(0)} }
+    #install-banner .ib-icon { font-size:2rem; flex-shrink:0; }
+    #install-banner .ib-text { flex:1; }
+    #install-banner .ib-text strong { font-size:0.9rem; display:block; }
+    #install-banner .ib-text span { font-size:0.75rem; color:var(--muted); }
+    #install-banner .ib-btn {
+      padding:9px 18px; background:linear-gradient(135deg,#f5576c,#f7971e);
+      border:none; border-radius:30px; color:#fff;
+      font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:700;
+      cursor:pointer; white-space:nowrap;
+    }
+    #install-banner .ib-close {
+      background:none; border:none; color:var(--muted); font-size:1.2rem;
+      cursor:pointer; padding:4px; flex-shrink:0;
+    }
+
+    /* ─── OFFLINE TOAST ──────────────────────────────── */
+    #offline-toast {
+      display:none; position:fixed; top:16px; left:50%; transform:translateX(-50%);
+      z-index:3000; background:var(--surface2); border:1px solid rgba(245,87,108,0.3);
+      border-radius:30px; padding:8px 18px; font-size:0.8rem; color:var(--muted);
+      box-shadow:0 4px 20px rgba(0,0,0,0.4); white-space:nowrap;
+    }
+    #offline-toast.show { display:block; }
+
+    /* ─── HERO ───────────────────────────────────────── */
+    .hero {
+      padding:clamp(20px,5vw,40px) 24px 14px;
+      text-align:center;
+      padding-top:calc(clamp(20px,5vw,40px) + env(safe-area-inset-top,0px));
+    }
+    .hero h1 {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2rem,8vw,4.5rem);
+      letter-spacing:3px;
+      background:linear-gradient(90deg,var(--gym),#f7971e,var(--look));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      line-height:1;
+    }
+    .hero .sub {
+      margin-top:6px; font-size:clamp(0.7rem,2.5vw,0.85rem);
+      color:var(--muted); letter-spacing:1.5px; text-transform:uppercase;
+    }
+
+    /* ─── PROGRAM RAIL ───────────────────────────────── */
+    .program-rail-wrap { padding:18px 0 4px; position:relative; }
+    .program-rail-wrap::before,.program-rail-wrap::after {
+      content:''; position:absolute; top:0; bottom:0; width:40px; z-index:2; pointer-events:none;
+    }
+    .program-rail-wrap::before { left:0; background:linear-gradient(to right,var(--dark),transparent); }
+    .program-rail-wrap::after  { right:0; background:linear-gradient(to left,var(--dark),transparent); }
+    .program-rail {
+      display:flex; gap:12px; overflow-x:auto;
+      padding:6px 40px 14px; scrollbar-width:none; scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling:touch;
+    }
+    .program-rail::-webkit-scrollbar { display:none; }
+
+    .prog-card {
+      flex:0 0 auto; scroll-snap-align:start;
+      width:clamp(130px,38vw,158px);
+      background:var(--surface); border:1.5px solid var(--border); border-radius:18px;
+      padding:16px 12px 13px; cursor:pointer;
+      transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1); position:relative; overflow:hidden;
+    }
+    .prog-card::before { content:''; position:absolute; inset:0; border-radius:18px; opacity:0; transition:opacity 0.3s; }
+    .prog-card:hover  { transform:translateY(-4px); }
+    .prog-card.gym.active   { border-color:var(--gym);  box-shadow:0 0 28px rgba(245,87,108,0.3);  transform:translateY(-6px); }
+    .prog-card.look.active  { border-color:var(--look); box-shadow:0 0 28px rgba(67,233,123,0.3);  transform:translateY(-6px); }
+    .prog-card.med.active   { border-color:var(--med);  box-shadow:0 0 28px rgba(167,139,250,0.3); transform:translateY(-6px); }
+    .prog-card.gym.active::before  { opacity:.08; background:var(--gym); }
+    .prog-card.look.active::before { opacity:.08; background:var(--look); }
+    .prog-card.med.active::before  { opacity:.08; background:var(--med); }
+    .prog-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; margin-bottom:10px; }
+    .prog-card.gym  .prog-icon { background:linear-gradient(135deg,#f5576c,#f7971e); }
+    .prog-card.look .prog-icon { background:linear-gradient(135deg,#43e97b,#38f9d7); }
+    .prog-card.med  .prog-icon { background:linear-gradient(135deg,#a78bfa,#6366f1); }
+    .prog-title { font-size:0.78rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text); margin-bottom:3px; }
+    .prog-desc  { font-size:0.68rem; color:var(--muted); line-height:1.4; }
+    .prog-badge {
+      position:absolute; top:9px; right:9px;
+      font-size:0.56rem; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+      padding:2px 6px; border-radius:20px; background:var(--border); color:var(--muted); transition:all .3s;
+    }
+    .prog-card.gym.active  .prog-badge { background:var(--gym);  color:#fff; }
+    .prog-card.look.active .prog-badge { background:var(--look); color:#000; }
+    .prog-card.med.active  .prog-badge { background:var(--med);  color:#fff; }
+
+    /* ─── SECTION VISIBILITY ─────────────────────────── */
+    .section-content { display:none; }
+    .section-content.active { display:block; }
+
+    /* ─── DAY NAV ────────────────────────────────────── */
+    .week-nav-wrap { padding:14px 16px 0; }
+    .week-nav { display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; scrollbar-width:none; }
+    .week-nav::-webkit-scrollbar { display:none; }
+    .day-btn {
+      flex:0 0 auto; padding:9px 14px;
+      background:var(--surface); border:1.5px solid var(--border); border-radius:30px;
+      cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:600;
+      color:var(--muted); transition:all .2s; white-space:nowrap; display:flex; align-items:center; gap:6px;
+      min-height:44px; /* accessibility touch target */
+    }
+    .day-btn:hover { color:var(--text); border-color:rgba(255,255,255,.2); }
+    .day-btn.active { background:linear-gradient(135deg,#f5576c,#f7971e); border-color:transparent; color:#fff; }
+    .day-emoji { font-size:.95rem; }
+    .day-label { font-size:.72rem; }
+
+    /* ─── MAIN CONTENT WRAPPER ───────────────────────── */
+    .main-content { padding:16px; max-width:960px; margin:0 auto; }
+
+    /* ─── WORKOUT CARDS ──────────────────────────────── */
+    .workout-card { display:none; animation:rise .4s ease; }
+    .workout-card.active { display:block; }
+    @keyframes rise { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+    .workout-header {
+      text-align:center; margin-bottom:20px; padding:22px 16px;
+      background:var(--surface); border-radius:var(--radius-lg); border:1px solid var(--border); position:relative; overflow:hidden;
+    }
+    .workout-header::before {
+      content:''; position:absolute; top:-40px; left:50%; transform:translateX(-50%);
+      width:200px; height:100px; background:radial-gradient(ellipse,rgba(245,87,108,.22),transparent 70%); pointer-events:none;
+    }
+    .workout-header h2 {
+      font-family:'Bebas Neue',sans-serif; font-size:clamp(1.8rem,6vw,2.6rem); letter-spacing:4px;
+      background:linear-gradient(135deg,#f5576c,#f7971e);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .workout-header .subtitle { font-size:.75rem; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-top:5px; }
+
+    .exercise {
+      background:var(--surface); border-radius:var(--radius-md); padding:16px; margin-bottom:14px;
+      border:1px solid var(--border); transition:all .25s;
+    }
+    @media (hover:hover) { .exercise:hover { border-color:rgba(245,87,108,.35); transform:translateX(4px); } }
+    .exercise-header { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+    .exercise-number {
+      background:linear-gradient(135deg,#f5576c,#f7971e); color:white;
+      width:34px; height:34px; border-radius:9px; min-width:34px;
+      display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem;
+    }
+    .exercise-name { font-size:clamp(.9rem,3vw,1.05rem); font-weight:700; color:var(--text); }
+    .exercise-sets { font-size:.78rem; color:#f7971e; font-weight:600; margin-top:2px; }
+    .exercise-description { font-size:.8rem; color:var(--muted); padding-left:46px; line-height:1.6; margin-bottom:12px; }
+    .exercise-gif { text-align:center; background:#0d0d0f; border-radius:10px; padding:10px; }
+    .exercise-gif img {
+      max-width:100%; height:clamp(160px,40vw,220px); object-fit:contain; border-radius:8px; display:block; margin:0 auto;
+    }
+
+    /* ─── SECTION HEADERS ────────────────────────────── */
+    .look-header,.med-header {
+      text-align:center; padding:22px 16px;
+      border-radius:var(--radius-lg); margin-bottom:20px; position:relative; overflow:hidden;
+    }
+    .look-header { background:var(--surface); border:1px solid rgba(67,233,123,.15); }
+    .med-header  { background:var(--surface); border:1px solid rgba(167,139,250,.15); }
+    .look-header::before { content:''; position:absolute; top:-40px; left:50%; transform:translateX(-50%); width:200px; height:100px; background:radial-gradient(ellipse,rgba(67,233,123,.2),transparent 70%); }
+    .med-header::before  { content:''; position:absolute; top:-40px; left:50%; transform:translateX(-50%); width:200px; height:100px; background:radial-gradient(ellipse,rgba(167,139,250,.22),transparent 70%); }
+    .look-header h2 { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.8rem,6vw,2.6rem); letter-spacing:4px; background:linear-gradient(135deg,#43e97b,#38f9d7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .med-header  h2 { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.8rem,6vw,2.6rem); letter-spacing:4px; background:linear-gradient(135deg,#a78bfa,#6366f1); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .look-header .subtitle,.med-header .subtitle { font-size:.75rem; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-top:5px; }
+
+    /* ─── LOOK & MED GRIDS ───────────────────────────── */
+    .look-grid,.med-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));
+      gap:14px;
+    }
+    .med-grid { margin-bottom:20px; }
+
+    .look-card,.med-card {
+      background:var(--surface); border-radius:18px; padding:20px;
+      border:1px solid var(--border); transition:all .25s; display:flex; flex-direction:column;
+    }
+    @media (hover:hover) {
+      .look-card:hover { border-color:rgba(67,233,123,.3); transform:translateY(-3px); }
+      .med-card:hover  { border-color:rgba(167,139,250,.35); transform:translateY(-3px); }
+    }
+    .lc-icon,.mc-icon { font-size:1.5rem; margin-bottom:10px; width:48px; height:48px; border-radius:13px; display:flex; align-items:center; justify-content:center; }
+    .lc-icon { background:linear-gradient(135deg,rgba(67,233,123,.15),rgba(56,249,215,.08)); }
+    .mc-icon { background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(99,102,241,.08)); }
+    .look-card h4,.med-card h4 { font-size:.95rem; font-weight:700; color:var(--text); margin-bottom:7px; }
+    .look-card p,.med-card p { font-size:.78rem; color:var(--muted); line-height:1.7; flex:1; }
+    .duration-badge { display:inline-block; font-size:.68rem; padding:2px 10px; border-radius:20px; background:rgba(167,139,250,.15); color:#a78bfa; font-weight:600; margin-bottom:9px; }
+
+    /* ─── VIEW BUTTONS ───────────────────────────────── */
+    .view-btn {
+      margin-top:14px; padding:10px 0; width:100%; border-radius:10px;
+      font-family:'DM Sans',sans-serif; font-size:.76rem; font-weight:700;
+      letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:all .2s;
+      min-height:44px;
+    }
+    .view-btn.look-btn { border:1.5px solid rgba(67,233,123,.35); background:transparent; color:#43e97b; }
+    .view-btn.look-btn:hover { background:rgba(67,233,123,.12); border-color:#43e97b; }
+    .view-btn.med-btn  { border:1.5px solid rgba(167,139,250,.35); background:transparent; color:#a78bfa; }
+    .view-btn.med-btn:hover  { background:rgba(167,139,250,.12); border-color:#a78bfa; }
+
+    /* ─── BREATHWORK ─────────────────────────────────── */
+    .breathe-widget { background:var(--surface); border:1px solid rgba(167,139,250,.2); border-radius:var(--radius-lg); padding:clamp(20px,5vw,32px) 16px; text-align:center; }
+    .breathe-widget h3 { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:3px; color:#a78bfa; margin-bottom:5px; }
+    .breathe-widget>p { font-size:.8rem; color:var(--muted); margin-bottom:24px; }
+    .breathe-circle {
+      width:clamp(120px,35vw,150px); height:clamp(120px,35vw,150px);
+      border-radius:50%; margin:0 auto 18px;
+      background:radial-gradient(circle,rgba(167,139,250,.28),rgba(99,102,241,.04));
+      border:2px solid rgba(167,139,250,.4);
+      display:flex; align-items:center; justify-content:center;
+      font-size:clamp(1.4rem,4vw,1.8rem); font-weight:700; color:#a78bfa; transition:all 1s ease;
+    }
+    .breathe-circle.inhale { transform:scale(1.35); box-shadow:0 0 40px rgba(167,139,250,.4); background:radial-gradient(circle,rgba(167,139,250,.45),transparent); }
+    .breathe-circle.exhale { transform:scale(.78); box-shadow:none; }
+    .breathe-label { font-family:'Bebas Neue',sans-serif; font-size:.95rem; letter-spacing:3px; color:var(--muted); margin-bottom:6px; }
+    .breathe-timer { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.8rem,5vw,2.2rem); color:var(--text); letter-spacing:2px; margin-bottom:18px; }
+    .breathe-btn { padding:11px 28px; background:linear-gradient(135deg,#a78bfa,#6366f1); border:none; border-radius:30px; color:white; font-family:'DM Sans',sans-serif; font-size:.86rem; font-weight:700; cursor:pointer; letter-spacing:1px; transition:all .2s; min-height:44px; }
+    .breathe-btn:hover { opacity:.85; transform:translateY(-2px); }
+
+    /* ─── MODAL ──────────────────────────────────────── */
+    .modal-overlay {
+      display:none; position:fixed; inset:0; z-index:1000;
+      background:rgba(0,0,0,.85); backdrop-filter:blur(10px);
+      align-items:flex-end; justify-content:center;
+      padding:0;
+    }
+    @media (min-width:600px) { .modal-overlay { align-items:center; padding:20px; } }
+    .modal-overlay.open { display:flex; animation:fadeOv .25s ease; }
+    @keyframes fadeOv { from{opacity:0}to{opacity:1} }
+
+    .modal-box {
+      background:#1a1a22; border-radius:22px 22px 0 0;
+      padding:28px 20px calc(28px + var(--safe-bottom));
+      width:100%; max-height:90dvh; overflow-y:auto;
+      border:1px solid rgba(255,255,255,.1); position:relative;
+      animation:sheetUp .35s cubic-bezier(0.34,1.12,0.64,1);
+    }
+    @media (min-width:600px) {
+      .modal-box { border-radius:22px; max-width:520px; padding:32px 28px; animation:slideUp .3s cubic-bezier(0.34,1.56,0.64,1); }
+    }
+    @keyframes sheetUp { from{transform:translateY(100%)}to{transform:translateY(0)} }
+    @keyframes slideUp  { from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)} }
+
+    /* Pull handle on mobile */
+    .modal-box::before {
+      content:''; display:block; width:40px; height:4px; background:rgba(255,255,255,.15);
+      border-radius:4px; margin:0 auto 20px;
+    }
+    @media (min-width:600px) { .modal-box::before { display:none; } }
+
+    .modal-close { position:absolute; top:16px; right:16px; background:rgba(255,255,255,.08); border:none; color:var(--muted); font-size:1.1rem; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+    .modal-close:hover { background:rgba(255,255,255,.15); color:var(--text); }
+    .modal-icon { font-size:2.2rem; margin-bottom:12px; }
+    .modal-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.5rem,5vw,1.8rem); letter-spacing:2px; margin-bottom:5px; }
+    .modal-badge { display:inline-block; font-size:.68rem; padding:3px 12px; border-radius:20px; font-weight:700; margin-bottom:16px; }
+    .modal-badge.look { background:rgba(67,233,123,.15); color:#43e97b; }
+    .modal-badge.med  { background:rgba(167,139,250,.15); color:#a78bfa; }
+    .modal-section { margin-bottom:16px; }
+    .modal-section h5 { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+    .modal-steps { list-style:none; }
+    .modal-steps li { display:flex; gap:11px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--border); font-size:.83rem; color:var(--text); line-height:1.6; }
+    .modal-steps li:last-child { border-bottom:none; }
+    .step-num { flex-shrink:0; width:24px; height:24px; border-radius:7px; font-size:.7rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+    .step-num.look { background:rgba(67,233,123,.18); color:#43e97b; }
+    .step-num.med  { background:rgba(167,139,250,.18); color:#a78bfa; }
+    .modal-tip { background:rgba(255,255,255,.04); border-radius:12px; padding:14px 15px; font-size:.8rem; color:var(--muted); line-height:1.7; border-left:3px solid; }
+    .modal-tip.look { border-color:#43e97b; }
+    .modal-tip.med  { border-color:#a78bfa; }
+
+    /* ─── RESPONSIVE GRID OVERRIDES ──────────────────── */
+    /* 2-col on tablets */
+    @media (min-width:600px) {
+      .look-grid,.med-grid { grid-template-columns:repeat(2,1fr); }
+      .prog-card { width:170px; }
+    }
+    /* 3-col on desktop */
+    @media (min-width:900px) {
+      .look-grid,.med-grid { grid-template-columns:repeat(3,1fr); }
+      .main-content { padding:24px; }
+    }
+    /* Landscape phone */
+    @media (max-height:500px) and (orientation:landscape) {
+      .hero { padding:12px 24px 8px; }
+      .hero h1 { font-size:1.8rem; }
+      .breathe-circle { width:100px; height:100px; }
+    }
+
+    /* ─── SCROLLBAR (desktop) ────────────────────────── */
+    @media (min-width:900px) {
+      ::-webkit-scrollbar { width:6px; height:6px; }
+      ::-webkit-scrollbar-track { background:transparent; }
+      ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.12); border-radius:3px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- OFFLINE TOAST -->
+<div id="offline-toast">📵 You're offline — cached content available</div>
+
+<!-- PWA INSTALL BANNER -->
+<div id="install-banner">
+  <div class="ib-icon">💪</div>
+  <div class="ib-text">
+    <strong>Add to Home Screen</strong>
+    <span>Install for offline access</span>
+  </div>
+  <button class="ib-btn" id="install-btn">Install</button>
+  <button class="ib-close" id="install-close">✕</button>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>PHYSIQUE PROGRAM</h1>
+  <p class="sub">Train · Transform · Transcend</p>
+</div>
+
+<!-- PROGRAM RAIL -->
+<div class="program-rail-wrap">
+  <div class="program-rail">
+    <div class="prog-card gym active" onclick="switchProgram('gym',this)">
+      <span class="prog-badge">6 Days</span>
+      <div class="prog-icon">🏋️</div>
+      <div class="prog-title">Gym Sets</div>
+      <div class="prog-desc">Full body split. Push, pull & legs.</div>
+    </div>
+    <div class="prog-card look" onclick="switchProgram('look',this)">
+      <span class="prog-badge">6 Tips</span>
+      <div class="prog-icon">✨</div>
+      <div class="prog-title">Look Maxing</div>
+      <div class="prog-desc">Posture, grooming, style & nutrition.</div>
+    </div>
+    <div class="prog-card med" onclick="switchProgram('meditate',this)">
+      <span class="prog-badge">7 Types</span>
+      <div class="prog-icon">🧘</div>
+      <div class="prog-title">Meditation</div>
+      <div class="prog-desc">Breath, mindset & focus training.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ GYM SECTION ════════════ -->
+<div class="section-content active" id="section-gym">
+  <div class="week-nav-wrap">
+    <div class="week-nav">
+      <button class="day-btn active" onclick="showDay(1,this)"><span class="day-emoji">🏋️</span><span class="day-label">Back</span></button>
+      <button class="day-btn" onclick="showDay(2,this)"><span class="day-emoji">💪</span><span class="day-label">Biceps</span></button>
+      <button class="day-btn" onclick="showDay(3,this)"><span class="day-emoji">🦾</span><span class="day-label">Chest</span></button>
+      <button class="day-btn" onclick="showDay(4,this)"><span class="day-emoji">🔱</span><span class="day-label">Triceps</span></button>
+      <button class="day-btn" onclick="showDay(5,this)"><span class="day-emoji">🎯</span><span class="day-label">Shoulders</span></button>
+      <button class="day-btn" onclick="showDay(6,this)"><span class="day-emoji">🦵</span><span class="day-label">Legs</span></button>
+    </div>
+  </div>
+  <div class="main-content">
+
+    <!-- BACK -->
+    <div class="workout-card active" id="day1">
+      <div class="workout-header"><h2>🏋️ BACK</h2><p class="subtitle">Width + Thickness · V-Taper Foundation</p></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">1</div><div class="exercise-info"><div class="exercise-name">Lat Pulldown / Pull-ups</div><div class="exercise-sets">4 × 8–12 reps</div></div></div><p class="exercise-description">Builds lat width (V-taper)</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif" alt="Lat Pulldown"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">2</div><div class="exercise-info"><div class="exercise-name">Barbell Row</div><div class="exercise-sets">4 × 6–10 reps</div></div></div><p class="exercise-description">Adds back thickness & strength</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bent-Over-Row.gif" alt="Barbell Row"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">3</div><div class="exercise-info"><div class="exercise-name">Seated Cable Row</div><div class="exercise-sets">3 × 10–12 reps</div></div></div><p class="exercise-description">Mid-back detail & posture</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Cable-Row.gif" alt="Seated Cable Row"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">4</div><div class="exercise-info"><div class="exercise-name">One-Arm Dumbbell Row</div><div class="exercise-sets">3 × 10–12 reps</div></div></div><p class="exercise-description">Corrects left-right imbalance</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif" alt="One-Arm Dumbbell Row"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">5</div><div class="exercise-info"><div class="exercise-name">Straight-Arm Pulldown</div><div class="exercise-sets">3 × 12–15 reps</div></div></div><p class="exercise-description">Lat isolation & mind-muscle connection</p><div class="exercise-gif"><img src="https://www.inspireusafoundation.org/wp-content/uploads/2024/01/rope-straight-arm-pulldown.gif" alt="Straight-Arm Pulldown"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">6</div><div class="exercise-info"><div class="exercise-name">Deadlift</div><div class="exercise-sets">2 × 5–6 reps</div></div></div><p class="exercise-description">Total back + spinal strength</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Deadlift.gif" alt="Deadlift"></div></div>
+    </div>
+
+    <!-- BICEPS -->
+    <div class="workout-card" id="day2">
+      <div class="workout-header"><h2>💪 BICEPS</h2><p class="subtitle">Peak + Thickness · Arm Sculpting</p></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">1</div><div class="exercise-info"><div class="exercise-name">Barbell Curl</div><div class="exercise-sets">4 × 8–12 reps</div></div></div><p class="exercise-description">Overall biceps mass builder</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Curl.gif" alt="Barbell Curl"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">2</div><div class="exercise-info"><div class="exercise-name">Incline Dumbbell Curl</div><div class="exercise-sets">3 × 10–12 reps</div></div></div><p class="exercise-description">Long-head stretch for peak development</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2022/02/Flexor-Incline-Dumbbell-Curls.gif"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">3</div><div class="exercise-info"><div class="exercise-name">Hammer Curl</div><div class="exercise-sets">3 × 10–12 reps</div></div></div><p class="exercise-description">Brachialis activation for thicker arms</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif" alt="Hammer Curl"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">4</div><div class="exercise-info"><div class="exercise-name">Preacher Curl</div><div class="exercise-sets">3 × 12–15 reps</div></div></div><p class="exercise-description">Short-head isolation</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/04/Lever-Preacher-Curl.gif" alt="Preacher Curl"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">5</div><div class="exercise-info"><div class="exercise-name">Cable Curl</div><div class="exercise-sets">2 × 15 reps</div></div></div><p class="exercise-description">Constant tension finisher & pump</p><div class="exercise-gif"><img src="https://www.aleanlife.com/wp-content/uploads/2022/04/reverse-cable-curls.gif"></div></div>
+    </div>
+
+    <!-- CHEST -->
+    <div class="workout-card" id="day3">
+      <div class="workout-header"><h2>🦾 CHEST</h2><p class="subtitle">Mass + Shape · Pec Dominance</p></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">1</div><div class="exercise-info"><div class="exercise-name">Incline Dumbbell Press</div><div class="exercise-sets">4 × 8–10 reps</div></div></div><p class="exercise-description">Upper chest thickness & shoulder stability</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Dumbbell-Press.gif" alt="Incline Dumbbell Press"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">2</div><div class="exercise-info"><div class="exercise-name">Flat Barbell Bench Press</div><div class="exercise-sets">4 × 5–8 reps</div></div></div><p class="exercise-description">Primary strength & overall mass builder</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bench-Press.gif" alt="Barbell Bench Press"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">3</div><div class="exercise-info"><div class="exercise-name">Flat Dumbbell Press</div><div class="exercise-sets">3 × 8–12 reps</div></div></div><p class="exercise-description">Deep stretch for better fiber activation</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Press.gif"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">4</div><div class="exercise-info"><div class="exercise-name">Pec Deck / Butterfly</div><div class="exercise-sets">3 × 12–15 reps</div></div></div><p class="exercise-description">Inner chest squeeze & shape</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Pec-Deck-Fly.gif" alt="Pec Deck"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">5</div><div class="exercise-info"><div class="exercise-name">Cable Fly (low → high)</div><div class="exercise-sets">3 × 12–15 reps</div></div></div><p class="exercise-description">Upper-inner definition + pump</p><div class="exercise-gif"><img src="https://fitliferegime.com/wp-content/uploads/2023/06/High-To-Low-Cable-fly.gif" alt="Cable Fly"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">6</div><div class="exercise-info"><div class="exercise-name">Dumbbell Pullover</div><div class="exercise-sets">2 × 12–15 reps</div></div></div><p class="exercise-description">Chest expansion & rib-cage stretch</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Pullover.gif" alt="Dumbbell Pullover"></div></div>
+    </div>
+
+    <!-- TRICEPS -->
+    <div class="workout-card" id="day4">
+      <div class="workout-header"><h2>🔱 TRICEPS</h2><p class="subtitle">Horseshoe Shape · Arm Fullness</p></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">1</div><div class="exercise-info"><div class="exercise-name">Close-Grip Bench Press</div><div class="exercise-sets">4 × 6–8 reps</div></div></div><p class="exercise-description">Triceps mass & compound strength</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Close-Grip-Bench-Press.gif" alt="Close-Grip Bench Press"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">2</div><div class="exercise-info"><div class="exercise-name">Triceps Pushdown</div><div class="exercise-sets">3 × 10–12 reps</div></div></div><p class="exercise-description">Lateral head thickness</p><div class="exercise-gif"><img src="https://www.inspireusafoundation.org/wp-content/uploads/2023/03/straight-bar-tricep-pushdown.gif" alt="Triceps Pushdown"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">3</div><div class="exercise-info"><div class="exercise-name">Skull Crushers</div><div class="exercise-sets">3 × 8–10 reps</div></div></div><p class="exercise-description">Long head overload</p><div class="exercise-gif"><img src="https://www.inspireusafoundation.org/wp-content/uploads/2022/08/flat-bench-skull-crusher.gif" alt="Skull Crushers"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">4</div><div class="exercise-info"><div class="exercise-name">Overhead Dumbbell Extension</div><div class="exercise-sets">3 × 12–15 reps</div></div></div><p class="exercise-description">Long-head stretch & growth</p><div class="exercise-gif"><img src="https://fitliferegime.com/wp-content/uploads/2023/07/Seated-Dumbbell-Overhead-Tricep-Extension.gif" alt="Overhead Extension"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">5</div><div class="exercise-info"><div class="exercise-name">Bench Dips</div><div class="exercise-sets">2 × max reps</div></div></div><p class="exercise-description">Finisher & pump</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Bench-Dips.gif" alt="Bench Dips"></div></div>
+    </div>
+
+    <!-- SHOULDERS -->
+    <div class="workout-card" id="day5">
+      <div class="workout-header"><h2>🎯 SHOULDERS</h2><p class="subtitle">Round Caps · Width & Power</p></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">1</div><div class="exercise-info"><div class="exercise-name">Overhead Barbell Press</div><div class="exercise-sets">4 × 6–8 reps</div></div></div><p class="exercise-description">Front delts + shoulder strength foundation</p><div class="exercise-gif"><img src="https://fitliferegime.com/wp-content/uploads/2023/08/Overhead-Press.gif"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">2</div><div class="exercise-info"><div class="exercise-name">Dumbbell Shoulder Press</div><div class="exercise-sets">3 × 8–10 reps</div></div></div><p class="exercise-description">Balanced delt growth</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Shoulder-Press.gif" alt="Dumbbell Shoulder Press"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">3</div><div class="exercise-info"><div class="exercise-name">Lateral Raises</div><div class="exercise-sets">4 × 12–15 reps</div></div></div><p class="exercise-description">Wide shoulder caps & width illusion</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif" alt="Lateral Raises"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">4</div><div class="exercise-info"><div class="exercise-name">Rear Delt Fly</div><div class="exercise-sets">3 × 12–15 reps</div></div></div><p class="exercise-description">Rear shoulder & posture balance</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Rear-Delt-Machine-Flys.gif" alt="Rear Delt Fly"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">5</div><div class="exercise-info"><div class="exercise-name">Front Raise</div><div class="exercise-sets">2 × 12 reps</div></div></div><p class="exercise-description">Front delt finishing movement</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Front-Raise.gif" alt="Front Raise"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">6</div><div class="exercise-info"><div class="exercise-name">Barbell Shrugs</div><div class="exercise-sets">3 × 12–15 reps</div></div></div><p class="exercise-description">Upper traps thickness</p><div class="exercise-gif"><img src="https://fitliferegime.com/wp-content/uploads/2023/06/Barbell-Shrug-1.gif" alt="Shrugs"></div></div>
+    </div>
+
+    <!-- LEGS -->
+    <div class="workout-card" id="day6">
+      <div class="workout-header"><h2>🦵 LEGS</h2><p class="subtitle">Foundation · Power & Mass</p></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">1</div><div class="exercise-info"><div class="exercise-name">Barbell Squats</div><div class="exercise-sets">4 × 6–10 reps</div></div></div><p class="exercise-description">Total leg mass & hormone response</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/BARBELL-SQUAT.gif" alt="Squats"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">2</div><div class="exercise-info"><div class="exercise-name">Leg Press</div><div class="exercise-sets">4 × 10–12 reps</div></div></div><p class="exercise-description">Quad thickness & volume</p><div class="exercise-gif"><img src="https://i.pinimg.com/originals/60/fb/4a/60fb4a02b481d7a1b71fbb1795d6109b.gif"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">3</div><div class="exercise-info"><div class="exercise-name">Leg Curl</div><div class="exercise-sets">3 × 12–15 reps</div></div></div><p class="exercise-description">Hamstrings isolation</p><div class="exercise-gif"><img src="https://static.wixstatic.com/media/2edbed_c3fbc7919ae24bc5b7ddee0b98c9ac4e~mv2.gif" alt="Leg Curl"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">4</div><div class="exercise-info"><div class="exercise-name">Leg Extension</div><div class="exercise-sets">3 × 12–15 reps</div></div></div><p class="exercise-description">Quad separation & definition</p><div class="exercise-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/LEG-EXTENSION.gif" alt="Leg Extension"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">5</div><div class="exercise-info"><div class="exercise-name">Walking Lunges</div><div class="exercise-sets">2 × 20 steps</div></div></div><p class="exercise-description">Glutes + balance & stability</p><div class="exercise-gif"><img src="https://liftmanual.com/wp-content/uploads/2023/04/dumbbell-walking-lunges.gif" alt="Walking Lunges"></div></div>
+      <div class="exercise"><div class="exercise-header"><div class="exercise-number">6</div><div class="exercise-info"><div class="exercise-name">Standing Calf Raise</div><div class="exercise-sets">4 × 15–20 reps</div></div></div><p class="exercise-description">Calf hypertrophy</p><div class="exercise-gif"><img src="https://www.inspireusafoundation.org/wp-content/uploads/2023/03/dumbbell-calf-raise.gif" alt="Calf Raise"></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════ LOOK SECTION ════════════ -->
+<div class="section-content" id="section-look">
+  <div class="main-content">
+    <div class="look-header">
+      <h2>LOOK MAXIMIZING</h2>
+      <p class="subtitle">Posture · Grooming · Style · Nutrition</p>
+    </div>
+    <div class="look-grid">
+      <div class="look-card"><div class="lc-icon">🧍</div><h4>Posture & Frame</h4><p>Your posture can make or break your physique. A strong frame commands instant presence before you say a word.</p><button class="view-btn look-btn" onclick="openModal('look','posture')">👁 View Technique</button></div>
+      <div class="look-card"><div class="lc-icon">💇</div><h4>Grooming Essentials</h4><p>Grooming is 20% of your look but delivers 80% of the first impression. Small habits, massive returns.</p><button class="view-btn look-btn" onclick="openModal('look','grooming')">👁 View Technique</button></div>
+      <div class="look-card"><div class="lc-icon">👕</div><h4>Style & Fit</h4><p>Clothes that fit well amplify your physique dramatically — no extra gym time required.</p><button class="view-btn look-btn" onclick="openModal('look','style')">👁 View Technique</button></div>
+      <div class="look-card"><div class="lc-icon">🥩</div><h4>Nutrition for Aesthetics</h4><p>What you eat shows directly on your face and body. Food is your most underrated supplement.</p><button class="view-btn look-btn" onclick="openModal('look','nutrition')">👁 View Technique</button></div>
+      <div class="look-card"><div class="lc-icon">🌞</div><h4>Skin & Tan</h4><p>Natural sun exposure creates depth that makes muscles appear sharper and more defined.</p><button class="view-btn look-btn" onclick="openModal('look','skin')">👁 View Technique</button></div>
+      <div class="look-card"><div class="lc-icon">😤</div><h4>Confidence & Energy</h4><p>The most attractive thing about any physique is the raw, unmistakable energy behind it.</p><button class="view-btn look-btn" onclick="openModal('look','confidence')">👁 View Technique</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ MEDITATION SECTION ════════════ -->
+<div class="section-content" id="section-meditate">
+  <div class="main-content">
+    <div class="med-header">
+      <h2>MEDITATION</h2>
+      <p class="subtitle">Breath · Mindset · Focus · Recovery</p>
+    </div>
+    <div class="med-grid">
+      <div class="med-card"><div class="mc-icon">🌅</div><h4>Morning Mindfulness</h4><span class="duration-badge">5–10 min</span><p>Sit still after waking. Focus on breath, let thoughts pass. Sets the tone for your whole day.</p><button class="view-btn med-btn" onclick="openModal('med','morning')">👁 View Technique</button></div>
+      <div class="med-card"><div class="mc-icon">🔥</div><h4>Pre-Workout Visualization</h4><span class="duration-badge">3–5 min</span><p>Mentally rehearse every set with perfect form before touching a weight. Athletes who visualize perform up to 13% better.</p><button class="view-btn med-btn" onclick="openModal('med','visualization')">👁 View Technique</button></div>
+      <div class="med-card"><div class="mc-icon">🌊</div><h4>Box Breathing</h4><span class="duration-badge">4–4–4–4 sec</span><p>Used by Navy SEALs to control stress instantly. Inhale → Hold → Exhale → Hold in equal counts.</p><button class="view-btn med-btn" onclick="openModal('med','box')">👁 View Technique</button></div>
+      <div class="med-card"><div class="mc-icon">🧠</div><h4>Body Scan (Recovery)</h4><span class="duration-badge">10–15 min</span><p>Scan every muscle from head to toe, consciously releasing tension. Accelerates recovery and sleep quality.</p><button class="view-btn med-btn" onclick="openModal('med','bodyscan')">👁 View Technique</button></div>
+      <div class="med-card"><div class="mc-icon">🎯</div><h4>Focus Meditation</h4><span class="duration-badge">10 min</span><p>Pick one object of attention. Every time the mind drifts, return. The returning IS the training.</p><button class="view-btn med-btn" onclick="openModal('med','focus')">👁 View Technique</button></div>
+      <div class="med-card"><div class="mc-icon">🌙</div><h4>Evening Wind-Down</h4><span class="duration-badge">5 min</span><p>4-count inhale, 8-count exhale. Activates the parasympathetic system for deep, restorative sleep.</p><button class="view-btn med-btn" onclick="openModal('med','evening')">👁 View Technique</button></div>
+      <div class="med-card"><div class="mc-icon">🙏</div><h4>Gratitude Practice</h4><span class="duration-badge">2–3 min</span><p>State 3 specific things you're grateful for. Linked to lower cortisol, better mood, and sustained motivation.</p><button class="view-btn med-btn" onclick="openModal('med','gratitude')">👁 View Technique</button></div>
+    </div>
+    <div class="breathe-widget">
+      <h3>LIVE BREATHWORK TIMER</h3>
+      <p>Box Breathing — 4-4-4-4 pattern</p>
+      <div class="breathe-circle" id="breatheCircle"><span id="breatheCount">4</span></div>
+      <div class="breathe-label" id="breatheLabel">READY</div>
+      <div class="breathe-timer" id="breatheTimer">00:00</div>
+      <button class="breathe-btn" id="breatheBtn" onclick="toggleBreathe()">START SESSION</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-icon" id="mIcon"></div>
+    <div class="modal-title" id="mTitle"></div>
+    <span class="modal-badge" id="mBadge"></span>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<script>
+/* ─── MODAL DATA ─── */
+const modalData={look:{posture:{icon:'🧍',title:'Posture & Frame',badge:'Look Maximizing',steps:[['Wall Angels','Stand against wall, slide arms up & down. 3×10 daily. Fixes rounded shoulders instantly.'],['Chin Tucks','Pull chin straight back, hold 3s. 3×15 daily. Reverses forward head posture over time.'],['Dead Hangs','Hang from a pull-up bar 30s. Decompresses spine and opens the chest passively.'],['Face Pulls','4×15 on shoulder day. Rear delts + rotator cuff = naturally upright posture for life.'],['Standing Rule','Chest up, shoulder blades slightly squeezed, weight through heels. Always, everywhere.']],tip:'💡 90% of posture improvement comes from awareness. Set a phone reminder every 2 hours: "Check posture now."'},grooming:{icon:'💇',title:'Grooming Essentials',badge:'Look Maximizing',steps:[['Haircut Routine','Every 3–4 weeks. Even a basic trim keeps you looking sharp and intentional.'],['Daily Skincare','Morning: Cleanser → Moisturizer → SPF 30+. Night: Cleanser → Moisturizer. 4 products, forever.'],['Body Hair Trim','Trim neck hair and eyebrows monthly. Clean edges = 10× neater appearance.'],['Oral Care','Whitening strips 2×/week + tongue scraper daily. White teeth + fresh breath = instant confidence.'],['Sleep for Skin','7–8hrs reduces cortisol. High cortisol = acne, puffiness, dull skin.']],tip:'💡 Biggest grooming ROI: clean haircut + clear skin. These two alone transform 80% of your appearance.'},style:{icon:'👕',title:'Style & Fit',badge:'Look Maximizing',steps:[['Shoulder Seam Rule','Shirt shoulder seam sits exactly at the shoulder joint — not hanging off, not pulling in.'],['V-Shape Dressing','Broader top + tapered trousers = visual V-taper on any physique.'],['Dark Bottom Rule','Dark trousers make legs look leaner. Light top + dark bottom = taller silhouette.'],['The Core 3 First','White fitted tee, black slim jeans, white sneakers. Master basics before experimenting.'],['Fit Beats Brand','A £15 well-fitted shirt beats a £200 oversized designer piece. Always prioritize fit.']],tip:'💡 Best style upgrade: get one outfit professionally tailored. Experience how correct fit changes everything.'},nutrition:{icon:'🥩',title:'Nutrition for Aesthetics',badge:'Look Maximizing',steps:[['Protein Target','1.6–2.2g per kg bodyweight daily. Non-negotiable for muscle retention and a lean look.'],['Caloric Strategy','Lean bulk: +200–300 kcal above TDEE. Cut: −300–500 kcal. Never extreme in either direction.'],['Omega-3 Foods','Salmon, sardines, walnuts, flaxseeds. Reduces inflammation and gives skin a visible glow.'],['Sodium Awareness','High sodium = water retention = blurry physique. Reduce processed food for sharper definition.'],['Creatine Daily','5g creatine monohydrate every day. Safest, most proven, highest ROI supplement in existence.']],tip:'💡 Track food for just 2 weeks. You will be shocked how far off your instincts are on protein and calories.'},skin:{icon:'🌞',title:'Skin & Tan',badge:'Look Maximizing',steps:[['Morning Sun','15–20 min natural sunlight before 10 AM. Vitamin D + mood and focus boost.'],['SPF Discipline','SPF 30+ whenever sun exposure exceeds 20 minutes. UV damage accelerates aging visibly.'],['Weekly Exfoliation','Gentle scrub 2× per week. Removes dead cells, evens tone, primes for moisturizer.'],['Hydration Priority','3L+ water daily. Hydrated skin = plumper, smoother, significantly clearer appearance.'],['Reduce Alcohol','Even 2–3 drinks/week show in skin quality. Cutting alcohol clears skin faster than any product.']],tip:'💡 Fastest skin upgrade: 8hrs sleep + 3L water + SPF daily. Zero products needed to see difference in 2 weeks.'},confidence:{icon:'😤',title:'Confidence & Energy',badge:'Look Maximizing',steps:[['Cold Shower Protocol','End every shower 60–90s cold. Dopamine spike lasts 2–3 hours. Compounds over time.'],['Eye Contact Rule','Hold eye contact 3 extra seconds per interaction. Retrains your social nervous system.'],['Slow Down Speech','Speak 20% slower than natural. Calm, deliberate speech reads as power and full presence.'],['Intentional Walking','Chest up, slightly slower pace, head level. Your movement broadcasts your internal state.'],['Phone Discipline','No phone 1hr before bed. Blue light destroys melatonin and next-day mood and recovery.']],tip:'💡 Confidence is a skill, not a trait. Cold showers + eye contact practice are the fastest reprogramming tools available.'}},med:{morning:{icon:'🌅',title:'Morning Mindfulness',badge:'5–10 min',steps:[['Set Up','Sit upright on bed or floor immediately after waking — before phone, coffee, or anything.'],['Anchor Breath','Close eyes. 3 deep breaths: 4s in through nose, hold 2s, 6s out through mouth.'],['Open Awareness','Breathe naturally. Observe: sounds, sensations, the weight of your body.'],['Label Thoughts','When a thought arises, mentally note "thinking" and return to breath. Zero judgment.'],['Set Intention','Final minute: "What one thing matters most today?" Let the answer arise naturally.']],tip:'🧘 5 minutes consistently beats 30 minutes occasionally. Make it non-negotiable like brushing teeth.'},visualization:{icon:'🔥',title:'Pre-Workout Visualization',badge:'3–5 min',steps:[['Find Quiet Space','Sit in a quiet spot 10 minutes before training. Close eyes, relax fully.'],['Set the Scene','Visualize yourself walking into the gym. Hear the sounds, feel the temperature.'],['Run Every Set','See each exercise with perfect form. Feel the target muscle contracting.'],['Grind the Last Rep','Visualize fighting through the final hard rep. Feel the strain and the completion.'],['Fire Up & Go','Open eyes, take one strong breath, carry that energy into your warm-up.']],tip:'🔥 The brain activates near-identical motor patterns whether you physically lift or vividly visualize it.'},box:{icon:'🌊',title:'Box Breathing',badge:'4-4-4-4 Pattern',steps:[['Exhale First','Fully empty your lungs. Resets the CO₂ cycle and prepares the nervous system.'],['Inhale for 4s','Breathe in slowly through your nose. Fill from belly upward.'],['Hold for 4s','Retain the breath. Stay relaxed. Start with 3s if 4 feels too long.'],['Exhale for 4s','Release slowly and completely through your mouth or nose.'],['Hold Empty for 4s','Lungs empty, stay still. The hardest phase. Complete 4–6 full cycles.']],tip:'🌊 Activates the vagus nerve — your nervous system\'s physiological off switch for anxiety and panic.'},bodyscan:{icon:'🧠',title:'Body Scan',badge:'10–15 min',steps:[['Lie Flat','On your back, arms at sides, legs uncrossed. Completely still.'],['Start at Feet','Bring awareness to soles of feet. Notice tension, warmth, or sensation.'],['Move Upward Slowly','Calves → Shins → Knees → Thighs → Hips. 30–60s per area.'],['Torso & Shoulders','Chest, belly, upper back, shoulders. Breathe into tightness and release.'],['Neck, Face & Crown','Jaw, eyes, forehead, scalp. Enormous tension held here — let it dissolve.']],tip:'🧠 Reduces DOMS perception, improves sleep depth, and lowers recovery time by decreasing cortisol after training.'},focus:{icon:'🎯',title:'Focus Meditation',badge:'10 min',steps:[['Choose Your Anchor','Your breath, a candle flame, or a single word. Commit to it fully.'],['Narrow Attention','Place full attention on that anchor. Observe its rhythm and texture.'],['Notice When You Drift','Mind will wander. That is not failure — noticing the drift is the point.'],['Return Without Judgment','Each return to the anchor is one completed mental repetition.'],['Build Progressively','Start 5 min. Add 2 min per week. Focus responds to progressive overload.']],tip:'🎯 Elite performers in every field have an intentional focus practice. This is the cognitive edge that compounds over years.'},evening:{icon:'🌙',title:'Evening Wind-Down',badge:'5 min',steps:[['Phone Down','No screens 30 min before. Blue light suppresses melatonin by up to 50%.'],['Dim the Lights','Warm, low lighting signals to your brain: time to downregulate.'],['4-8 Breathing','Inhale 4 counts. Exhale slowly 8 counts through mouth.'],['Repeat 5–8 Cycles','Extended exhale stimulates vagus nerve, triggering deep rest response.'],['Gratitude Bridge','Recall one positive moment from today before your eyes close.']],tip:'🌙 Growth hormone releases in your first sleep cycle. This practice directly maximizes that recovery window.'},gratitude:{icon:'🙏',title:'Gratitude Practice',badge:'2–3 min',steps:[['Be Specific','Never "grateful for family." Write "grateful that [name] texted to check in today."'],['Three Minimum','3 genuinely distinct entries. Quantity without specificity defeats the purpose.'],['Include Your Body','One entry tied to health or training. Reinforces your identity as someone who works on themselves.'],['Morning or Evening','Morning = positive lens for the day. Evening = better sleep and memory consolidation.'],['Avoid Autopilot','Ask: "What would I miss most if it disappeared tomorrow?" Let that guide your entry.']],tip:'🙏 Gratitude measurably reduces cortisol up to 23% over 4 weeks. Lower cortisol = better recovery, more muscle, less fat.'}}};
+
+function openModal(type,key){
+  const d=modalData[type][key];
+  document.getElementById('mIcon').textContent=d.icon;
+  document.getElementById('mTitle').textContent=d.title;
+  const b=document.getElementById('mBadge'); b.textContent=d.badge; b.className='modal-badge '+type;
+  let h=`<div class="modal-section"><h5>Step-by-Step Technique</h5><ul class="modal-steps">`;
+  d.steps.forEach((s,i)=>{h+=`<li><span class="step-num ${type}">${i+1}</span><div><strong>${s[0]}</strong><br><span style="color:var(--muted)">${s[1]}</span></div></li>`;});
+  h+=`</ul></div><div class="modal-tip ${type}">${d.tip}</div>`;
+  document.getElementById('mBody').innerHTML=h;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}
+function closeModalOutside(e){if(e.target===document.getElementById('modalOverlay'))closeModal();}
+
+/* ─── PROGRAM SWITCHER ─── */
+function switchProgram(prog,card){
+  document.querySelectorAll('.prog-card').forEach(c=>c.classList.remove('active'));
+  card.classList.add('active');
+  document.querySelectorAll('.section-content').forEach(s=>s.classList.remove('active'));
+  document.getElementById({gym:'section-gym',look:'section-look',meditate:'section-meditate'}[prog]).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ─── DAY SWITCHER ─── */
+function showDay(n,btn){
+  document.querySelectorAll('.workout-card').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('day'+n).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ─── BREATHWORK ─── */
+const phases=[{label:'INHALE',dur:4,cls:'inhale'},{label:'HOLD',dur:4,cls:''},{label:'EXHALE',dur:4,cls:'exhale'},{label:'HOLD',dur:4,cls:''}];
+let running=false,iv=null,sv=null,secs=0,pi=0,pc=0;
+const circle=document.getElementById('breatheCircle'),cEl=document.getElementById('breatheCount'),lEl=document.getElementById('breatheLabel'),tEl=document.getElementById('breatheTimer'),bEl=document.getElementById('breatheBtn');
+function toggleBreathe(){
+  if(running){running=false;clearInterval(iv);clearInterval(sv);circle.className='breathe-circle';cEl.textContent='4';lEl.textContent='READY';tEl.textContent='00:00';bEl.textContent='START SESSION';pi=0;pc=0;secs=0;}
+  else{running=true;bEl.textContent='STOP';secs=0;sv=setInterval(()=>{secs++;tEl.textContent=String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');},1000);runPhase();}
+}
+function runPhase(){if(!running)return;const p=phases[pi];pc=p.dur;lEl.textContent=p.label;cEl.textContent=pc;circle.className='breathe-circle '+p.cls;iv=setInterval(()=>{pc--;cEl.textContent=pc;if(pc<=0){clearInterval(iv);pi=(pi+1)%phases.length;setTimeout(runPhase,200);}},1000);}
+
+/* ─── PWA: SERVICE WORKER ─── */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').then(r=>{
+      console.log('[PWA] SW registered',r.scope);
+    }).catch(e=>console.warn('[PWA] SW failed',e));
+  });
+}
+
+/* ─── PWA: INSTALL PROMPT ─── */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('install-banner').classList.add('show');
+});
+document.getElementById('install-btn').addEventListener('click',async()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  const{outcome}=await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById('install-banner').classList.remove('show');
+});
+document.getElementById('install-close').addEventListener('click',()=>{
+  document.getElementById('install-banner').classList.remove('show');
+});
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+/* ─── PWA: OFFLINE TOAST ─── */
+const toast=document.getElementById('offline-toast');
+window.addEventListener('offline',()=>{toast.classList.add('show');});
+window.addEventListener('online',()=>{toast.classList.remove('show');});
+if(!navigator.onLine) toast.classList.add('show');
+</script>
+</body>
+</html>
