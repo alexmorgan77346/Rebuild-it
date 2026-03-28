@@ -1,4 +1,4 @@
-const CACHE = 'physique-v4';
+const CACHE = 'physique-v5';
 const ASSETS = [
   './',
   './index.html',
